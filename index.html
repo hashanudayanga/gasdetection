@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gas Leak Monitor</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+  <h1>📊 Gas Leak Dashboard</h1>
+  <p>Time: <span id="time">--:--:--</span></p>
+  <p>PPM Value: <span id="ppm">--</span></p>
+  <p>Status: <span id="status">--</span></p>
+
+  <script>
+    const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
+
+    client.on("connect", function () {
+      console.log("✅ Connected to MQTT WebSocket");
+      client.subscribe("gasleak/data");
+    });
+
+    client.on("message", function (topic, message) {
+      let data = JSON.parse(message.toString());
+      document.getElementById("time").textContent = data.time;
+      document.getElementById("ppm").textContent = data.ppm;
+
+      if (data.ppm >= 200) {
+        document.getElementById("status").textContent = "🚨 Danger! Gas Leak!";
+        document.getElementById("status").style.color = "red";
+      } else {
+        document.getElementById("status").textContent = "✅ Safe";
+        document.getElementById("status").style.color = "green";
+      }
+    });
+  </script>
+</body>
+</html>
